@@ -1,0 +1,45 @@
+﻿@page "/admin"
+
+@attribute [Authorize(Roles = "Admin")]
+
+<h3>Admin Page</h3>
+
+
+<AuthorizeView>
+    <Authorized>
+        <p>Hello, @context.User.Identity?.Name!</p>
+    </Authorized>
+    <NotAuthorized>
+        <p>You're not authorized.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+@foreach (var role in roles)
+{
+    <p>Role: @role</p>
+
+}
+
+@code {
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    private List<string> roles = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await authenticationStateTask;
+        var user = authState.User;
+
+        foreach (var claim in user.Claims)
+        {
+            roles.Add(claim.Value);
+            Console.WriteLine($"Admin Page Claim Type: {claim.Type}, Value: {claim.Value}");
+        }
+
+        if (!user.IsInRole("Admin"))
+        {
+            Console.WriteLine("User is not in the Admin role");
+        }
+    }
+}
